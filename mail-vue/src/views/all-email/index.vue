@@ -194,6 +194,7 @@ function rightSearch(type, value) {
   const typeMap = {name: 'sender', user: 'user', account: 'account'}
   allEmailStore.setSearchParams({
     text: value || '',
+    mailbox: '',
     type: typeMap[type] || 'subject',
     startDate: '',
     endDate: '',
@@ -218,6 +219,7 @@ function getEmailList(emailId, size) {
     timeSort: params.timeSort,
     type: search.status || 'all',
     text: search.text,
+    mailbox: search.mailbox || undefined,
     searchType: search.type,
     startDate: search.startDate,
     endDate: search.endDate,
@@ -248,20 +250,19 @@ async function pullLatest() {
   }
 
   const search = allEmailStore.searchParams
-  if (search.text || search.startDate || search.endDate || (search.status && search.status !== 'all' && search.status !== 'receive')) {
+  if (search.text || search.mailbox || search.startDate || search.endDate || (search.status && search.status !== 'all' && search.status !== 'receive')) {
     return
   }
 
   try {
     const curTimeSort = params.timeSort
-    const curStatus = search.status
     const list = await allEmailLatest(latestId)
 
     if (list.length === 0) {
       return
     }
 
-    if (params.timeSort !== curTimeSort || allEmailStore.searchParams.status !== curStatus) {
+    if (params.timeSort !== curTimeSort || allEmailStore.searchParams !== search) {
       return
     }
 

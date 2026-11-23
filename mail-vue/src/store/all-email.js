@@ -4,6 +4,7 @@ export const useAllEmailStore = defineStore('all-email', {
     state: () => ({
         searchParams: {
             text: '',
+            mailbox: '',
             type: 'subject',
             startDate: '',
             endDate: '',

@@ -109,6 +109,8 @@ const zh = {
     searchSenderAddress: '发件地址',
     searchRecipientAddress: '收件地址',
     searchSummarySubject: '主题',
+    mailBody: '正文',
+    bodySearchMailbox: '邮箱完整地址（选填）',
     searchSummaryContent: '内容',
     searchSummarySender: '发件人',
     searchSummarySenderAddress: '发件地址',

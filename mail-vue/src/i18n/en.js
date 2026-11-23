@@ -109,6 +109,8 @@ const en = {
     searchSenderAddress: 'Sender address',
     searchRecipientAddress: 'Recipient address',
     searchSummarySubject: 'Subject',
+    mailBody: 'Body',
+    bodySearchMailbox: 'Mailbox address (optional)',
     searchSummaryContent: 'Content',
     searchSummarySender: 'sender',
     searchSummarySenderAddress: 'from',
