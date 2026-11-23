@@ -1298,6 +1298,19 @@ const emailService = {
 
 		const filters = this.allEmailListFilters({ emailId, name, subject, accountEmail, userEmail, type, timeSort, text, searchType, startDate, endDate });
 		const countFilters = this.allEmailListFilters({ emailId, name, subject, accountEmail, userEmail, type, timeSort, text, searchType, startDate, endDate, withCursor: false });
+		if (searchType === 'content') {
+			const keyword = text?.trim();
+			const mailbox = params.mailbox?.trim();
+			const bodyFilter = and(
+				keyword ? or(
+					sql`instr(lower(${email.text}), lower(${keyword})) > 0`,
+					sql`instr(lower(${email.content}), lower(${keyword})) > 0`,
+				) : undefined,
+				mailbox ? sql`${email.accountId} IN (SELECT ${account.accountId} FROM ${account} WHERE ${account.email} COLLATE NOCASE = ${mailbox})` : undefined,
+			);
+			filters.push(bodyFilter);
+			countFilters.push(bodyFilter);
+		}
 		const searchUser = Boolean(text?.trim() && searchType === 'user');
 		const columns = full ? emailListColumns : emailBriefColumns;
 

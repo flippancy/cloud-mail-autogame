@@ -40,6 +40,15 @@
                 {{ option.label }}
               </el-radio-button>
             </el-radio-group>
+            <el-input
+              v-if="searchType === 'content'"
+              v-model="mailbox"
+              class="search-type-title"
+              :placeholder="mailboxLabel"
+              :aria-label="mailboxLabel"
+              clearable
+              @keyup.enter="handleSearch"
+            />
             <div class="search-content-title search-type-title">{{ t('mailStatus') }}</div>
             <el-radio-group v-model="mailStatus" class="search-options" :aria-label="t('mailStatus')">
               <el-radio-button
@@ -102,6 +111,7 @@ let listObserver = null
 
 const searchOptions = computed(() => [
   {label: t('subject'), type: 'subject'},
+  {label: t('searchSummaryContent'), type: 'content'},
   {label: t('sender'), type: 'sender'},
   {label: t('searchSenderAddress'), type: 'senderAddress'},
   {label: t('user'), type: 'user'},
@@ -119,6 +129,8 @@ const statusOptions = computed(() => [
 const searchRef = ref(null)
 const inputRef = ref(null)
 const searchText = ref('')
+const mailboxLabel = computed(() => `${t('selectEmail')} (${t('optional')})`)
+const mailbox = ref('')
 const searchType = ref('subject')
 const mailStatus = ref('all')
 const startDate = ref('')
@@ -133,6 +145,7 @@ const savedSearchSummary = computed(() => {
   const text = params.text?.trim()
   const fieldKeys = {
     subject: 'searchSummarySubject',
+    content: 'searchSummaryContent',
     sender: 'searchSummarySender',
     senderAddress: 'searchSummarySenderAddress',
     user: 'searchSummaryUser',
@@ -141,6 +154,9 @@ const savedSearchSummary = computed(() => {
 
   if (text) {
     parts.push(`${t(fieldKeys[params.type] || fieldKeys.subject)}:${text}`)
+  }
+  if (params.type === 'content' && params.mailbox) {
+    parts.push(params.mailbox)
   }
   if (params.status && params.status !== 'all') {
     parts.push(statusOptions.value.find(option => option.value === params.status)?.label || '')
@@ -198,6 +214,7 @@ function closeSearch() {
 
 function restoreSavedSearch() {
   const params = allEmailStore.searchParams
+  mailbox.value = params.mailbox || ''
   searchText.value = params.text || ''
   searchType.value = searchOptions.value.some(option => option.type === params.type)
     ? params.type
@@ -267,6 +284,7 @@ function formatSearchDate(dateValue, endOfDay = false) {
 function handleSearch() {
   allEmailStore.setSearchParams({
     text: searchText.value.trim(),
+    mailbox: searchType.value === 'content' ? mailbox.value.trim() : '',
     type: searchType.value,
     status: mailStatus.value,
     startDate: formatSearchDate(startDate.value),
@@ -284,6 +302,7 @@ function handleReset() {
   endDate.value = ''
   allEmailStore.setSearchParams({
     text: '',
+    mailbox: '',
     type: 'subject',
     status: 'all',
     startDate: '',
