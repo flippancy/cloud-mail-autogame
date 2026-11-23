@@ -43,9 +43,9 @@
             <el-input
               v-if="searchType === 'content'"
               v-model="mailbox"
-              class="mailbox-filter"
-              :placeholder="t('bodySearchMailbox')"
-              :aria-label="t('bodySearchMailbox')"
+              class="search-type-title"
+              :placeholder="mailboxLabel"
+              :aria-label="mailboxLabel"
               clearable
               @keyup.enter="handleSearch"
             />
@@ -111,7 +111,7 @@ let listObserver = null
 
 const searchOptions = computed(() => [
   {label: t('subject'), type: 'subject'},
-  {label: t('mailBody'), type: 'content'},
+  {label: t('searchSummaryContent'), type: 'content'},
   {label: t('sender'), type: 'sender'},
   {label: t('searchSenderAddress'), type: 'senderAddress'},
   {label: t('user'), type: 'user'},
@@ -129,6 +129,7 @@ const statusOptions = computed(() => [
 const searchRef = ref(null)
 const inputRef = ref(null)
 const searchText = ref('')
+const mailboxLabel = computed(() => `${t('selectEmail')} (${t('optional')})`)
 const mailbox = ref('')
 const searchType = ref('subject')
 const mailStatus = ref('all')
@@ -144,7 +145,7 @@ const savedSearchSummary = computed(() => {
   const text = params.text?.trim()
   const fieldKeys = {
     subject: 'searchSummarySubject',
-    content: 'mailBody',
+    content: 'searchSummaryContent',
     sender: 'searchSummarySender',
     senderAddress: 'searchSummarySenderAddress',
     user: 'searchSummaryUser',
@@ -537,10 +538,6 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-primary);
   width: 100%;
   text-align: left !important;
-}
-
-.mailbox-filter {
-  margin-top: 12px;
 }
 
 .search-type-title {

@@ -274,7 +274,7 @@ const emailService = {
 		return conditions;
 	},
 
-	allEmailListFilters({ emailId, name, subject, accountEmail, mailbox, userEmail, type, timeSort, withCursor = true, text, searchType, startDate, endDate }) {
+	allEmailListFilters({ emailId, name, subject, accountEmail, userEmail, type, timeSort, withCursor = true, text, searchType, startDate, endDate }) {
 		const conditions = [
 			ne(email.status, emailConst.status.SAVING)
 		];
@@ -297,10 +297,6 @@ const emailService = {
 
 		if (userEmail) {
 			conditions.push(sql`${user.email} COLLATE NOCASE LIKE ${userEmail + '%'}`);
-		}
-
-		if (mailbox?.trim()) {
-			conditions.push(sql`${email.accountId} IN (SELECT ${account.accountId} FROM ${account} WHERE ${account.email} COLLATE NOCASE = ${mailbox.trim()})`);
 		}
 
 		if (accountEmail) {
@@ -328,14 +324,6 @@ const emailService = {
 
 			if (searchType === 'senderAddress') {
 				conditions.push(sql`${email.sendEmail} COLLATE NOCASE LIKE ${searchText}`);
-			}
-
-			if (searchType === 'content') {
-				const keyword = text.trim();
-				conditions.push(or(
-					sql`instr(lower(${email.text}), lower(${keyword})) > 0`,
-					sql`instr(lower(${email.content}), lower(${keyword})) > 0`,
-				));
 			}
 
 			if (searchType === 'user') {
@@ -1283,7 +1271,7 @@ const emailService = {
 
 	async allList(c, params) {
 
-		let { emailId, size, name, subject, accountEmail, mailbox, userEmail, type, timeSort, full, text, searchType, startDate, endDate } = params;
+		let { emailId, size, name, subject, accountEmail, userEmail, type, timeSort, full, text, searchType, startDate, endDate } = params;
 
 		size = Number(size);
 		emailId = Number(emailId) || 0;
@@ -1308,8 +1296,21 @@ const emailService = {
 
 		full = full === 1;
 
-		const filters = this.allEmailListFilters({ emailId, name, subject, accountEmail, mailbox, userEmail, type, timeSort, text, searchType, startDate, endDate });
-		const countFilters = this.allEmailListFilters({ emailId, name, subject, accountEmail, mailbox, userEmail, type, timeSort, text, searchType, startDate, endDate, withCursor: false });
+		const filters = this.allEmailListFilters({ emailId, name, subject, accountEmail, userEmail, type, timeSort, text, searchType, startDate, endDate });
+		const countFilters = this.allEmailListFilters({ emailId, name, subject, accountEmail, userEmail, type, timeSort, text, searchType, startDate, endDate, withCursor: false });
+		if (searchType === 'content') {
+			const keyword = text?.trim();
+			const mailbox = params.mailbox?.trim();
+			const bodyFilter = and(
+				keyword ? or(
+					sql`instr(lower(${email.text}), lower(${keyword})) > 0`,
+					sql`instr(lower(${email.content}), lower(${keyword})) > 0`,
+				) : undefined,
+				mailbox ? sql`${email.accountId} IN (SELECT ${account.accountId} FROM ${account} WHERE ${account.email} COLLATE NOCASE = ${mailbox})` : undefined,
+			);
+			filters.push(bodyFilter);
+			countFilters.push(bodyFilter);
+		}
 		const searchUser = Boolean(text?.trim() && searchType === 'user');
 		const columns = full ? emailListColumns : emailBriefColumns;
 
